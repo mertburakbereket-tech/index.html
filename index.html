@@ -1,360 +1,587 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Lock, User, LogOut, Search, Plus, CheckCircle2, CalendarDays, IdCard } from "lucide-react";
-
-const DEMO_USERNAME = "kudretliburak";
-const DEMO_PASSWORD = "evetkudretliburak";
-
-const initialPersonnel = [
-  {
-    id: 1,
-    adSoyad: "Ahmet Yılmaz",
-    meslek: "Hasta Bakıcı",
-    telefon: "0555 123 45 67",
-    bolge: "İstanbul",
-    durum: "Müsait",
-    iseGonderildi: false,
-    gonderimTarihi: "",
-    kimlikFoto: "",
-    not: ""
-  },
-  {
-    id: 2,
-    adSoyad: "Meryem Kaya",
-    meslek: "Çocuk Bakıcısı",
-    telefon: "0554 222 11 00",
-    bolge: "Bursa",
-    durum: "İşe Gönderildi",
-    iseGonderildi: true,
-    gonderimTarihi: "2026-03-18",
-    kimlikFoto: "",
-    not: "Gece vardiyası için gönderildi"
-  }
-];
-
-function LoginScreen({ onLogin }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (username === DEMO_USERNAME && password === DEMO_PASSWORD) {
-      localStorage.setItem("orenda_auth", "ok");
-      onLogin();
-      return;
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orenda Personel Takip</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
     }
-
-    setError("Kullanıcı adı veya şifre hatalı.");
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8 border border-slate-200">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center">
-            <Lock className="w-7 h-7" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Orenda Personel Sistemi</h1>
-            <p className="text-sm text-slate-500">Devam etmek için giriş yapın</p>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium text-slate-700 block mb-2">Kullanıcı Adı</label>
-            <div className="relative">
-              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Kullanıcı adını gir"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 outline-none focus:ring-2 focus:ring-slate-400"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-slate-700 block mb-2">Şifre</label>
-            <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Şifreni gir"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-300 outline-none focus:ring-2 focus:ring-slate-400"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <div className="text-sm bg-red-50 text-red-600 border border-red-200 rounded-2xl px-4 py-3">
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-2xl font-semibold transition"
-          >
-            Giriş Yap
-          </button>
-        </form>
-
-        <div className="mt-6 text-xs text-slate-500 bg-slate-50 rounded-2xl p-4 border border-slate-200">
-          <p><span className="font-semibold">Kullanıcı adı:</span> kudretliburak</p>
-          <p><span className="font-semibold">Şifre:</span> evetkudretliburak</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AppHeader({ onLogout }) {
-  return (
-    <div className="bg-white border-b border-slate-200 sticky top-0 z-20">
-      <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Orenda Personel Takip</h1>
-          <p className="text-sm text-slate-500">Personel yönetim ve işe gönderim ekranı</p>
-        </div>
-        <button
-          onClick={onLogout}
-          className="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-2xl"
-        >
-          <LogOut className="w-4 h-4" /> Çıkış Yap
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PersonnelForm({ onAdd }) {
-  const [form, setForm] = useState({
-    adSoyad: "",
-    meslek: "",
-    telefon: "",
-    bolge: "",
-    iseGonderildi: false,
-    gonderimTarihi: "",
-    kimlikFoto: "",
-    not: ""
-  });
-
-  const update = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
-
-  const submit = (e) => {
-    e.preventDefault();
-    if (!form.adSoyad || !form.meslek || !form.telefon) return;
-
-    onAdd({
-      ...form,
-      durum: form.iseGonderildi ? "İşe Gönderildi" : "Müsait"
-    });
-
-    setForm({
-      adSoyad: "",
-      meslek: "",
-      telefon: "",
-      bolge: "",
-      iseGonderildi: false,
-      gonderimTarihi: "",
-      kimlikFoto: "",
-      not: ""
-    });
-  };
-
-  return (
-    <form onSubmit={submit} className="bg-white rounded-3xl shadow-lg border border-slate-200 p-5 space-y-4">
-      <div className="flex items-center gap-2">
-        <Plus className="w-5 h-5" />
-        <h2 className="text-lg font-bold">Personel Ekle</h2>
-      </div>
-
-      <div className="grid md:grid-cols-2 gap-4">
-        <input className="border rounded-2xl px-4 py-3" placeholder="Ad Soyad" value={form.adSoyad} onChange={(e) => update("adSoyad", e.target.value)} />
-        <input className="border rounded-2xl px-4 py-3" placeholder="Meslek" value={form.meslek} onChange={(e) => update("meslek", e.target.value)} />
-        <input className="border rounded-2xl px-4 py-3" placeholder="Telefon" value={form.telefon} onChange={(e) => update("telefon", e.target.value)} />
-        <input className="border rounded-2xl px-4 py-3" placeholder="Bölge" value={form.bolge} onChange={(e) => update("bolge", e.target.value)} />
-      </div>
-
-      <label className="flex items-center gap-3 text-sm font-medium text-slate-700">
-        <input
-          type="checkbox"
-          checked={form.iseGonderildi}
-          onChange={(e) => update("iseGonderildi", e.target.checked)}
-        />
-        Bu personel işe gönderildi
-      </label>
-
-      {form.iseGonderildi && (
-        <div className="grid md:grid-cols-2 gap-4">
-          <input type="date" className="border rounded-2xl px-4 py-3" value={form.gonderimTarihi} onChange={(e) => update("gonderimTarihi", e.target.value)} />
-          <input className="border rounded-2xl px-4 py-3" placeholder="Kimlik fotoğrafı linki" value={form.kimlikFoto} onChange={(e) => update("kimlikFoto", e.target.value)} />
-        </div>
-      )}
-
-      <textarea className="border rounded-2xl px-4 py-3 w-full min-h-[100px]" placeholder="Not" value={form.not} onChange={(e) => update("not", e.target.value)} />
-
-      <button className="bg-slate-900 text-white px-5 py-3 rounded-2xl font-semibold">Kaydet</button>
-    </form>
-  );
-}
-
-function PersonnelCard({ person, onSendToJob }) {
-  return (
-    <div className="bg-white rounded-3xl shadow-md border border-slate-200 p-5 space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-bold text-slate-900">{person.adSoyad}</h3>
-          <p className="text-sm text-slate-500">{person.meslek}</p>
-        </div>
-        <span className={`text-xs px-3 py-1 rounded-full font-semibold ${person.iseGonderildi ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}>
-          {person.iseGonderildi ? "İşe Gönderildi" : "Müsait"}
-        </span>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        <div><span className="text-slate-500">Telefon:</span> {person.telefon}</div>
-        <div><span className="text-slate-500">Bölge:</span> {person.bolge || "-"}</div>
-      </div>
-
-      {person.iseGonderildi ? (
-        <div className="space-y-2 text-sm border-t pt-4">
-          <div className="flex items-center gap-2 text-slate-700"><CalendarDays className="w-4 h-4" /> Gönderim Tarihi: {person.gonderimTarihi || "-"}</div>
-          <div className="flex items-center gap-2 text-slate-700"><IdCard className="w-4 h-4" /> Kimlik Fotoğrafı: {person.kimlikFoto ? <a href={person.kimlikFoto} className="text-blue-600 underline" target="_blank" rel="noreferrer">Görüntüle</a> : "Yok"}</div>
-          <div className="text-slate-700">Not: {person.not || "-"}</div>
-        </div>
-      ) : (
-        <button
-          onClick={() => onSendToJob(person.id)}
-          className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-2xl"
-        >
-          <CheckCircle2 className="w-4 h-4" /> İşe Gönderildi Yap
-        </button>
-      )}
-    </div>
-  );
-}
-
-export default function PersonelTakipGuvenlikliApp() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [search, setSearch] = useState("");
-  const [personnel, setPersonnel] = useState(() => {
-    const saved = localStorage.getItem("orenda_personnel");
-    return saved ? JSON.parse(saved) : initialPersonnel;
-  });
-
-  useEffect(() => {
-    if (localStorage.getItem("orenda_auth") === "ok") {
-      setIsLoggedIn(true);
+    .hidden { display: none !important; }
+    .container {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
     }
-  }, []);
+    .topbar {
+      background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 0;
+    }
+    .title { margin: 0; font-size: 28px; font-weight: 700; }
+    .subtitle { margin: 6px 0 0; color: #64748b; font-size: 14px; }
+    .btn {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: .2s ease;
+    }
+    .btn-dark { background: #0f172a; color: #fff; }
+    .btn-dark:hover { background: #1e293b; }
+    .btn-green { background: #059669; color: #fff; }
+    .btn-green:hover { background: #047857; }
+    .btn-red { background: #dc2626; color: #fff; }
+    .btn-red:hover { background: #b91c1c; }
+    .page { padding: 24px 0 40px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+    }
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      width: min(460px, 100%);
+      padding: 28px;
+    }
+    .login-head {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+    .lock-box {
+      width: 58px;
+      height: 58px;
+      border-radius: 18px;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 700;
+    }
+    .login-title { margin: 0; font-size: 20px; }
+    .login-sub { margin: 6px 0 0; color: #64748b; font-size: 14px; }
+    label {
+      display: block;
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+    }
+    input, textarea {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      outline: none;
+      background: #fff;
+    }
+    input:focus, textarea:focus {
+      border-color: #64748b;
+      box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.12);
+    }
+    textarea { resize: vertical; min-height: 100px; }
+    .field { margin-bottom: 14px; }
+    .error {
+      margin: 12px 0;
+      border: 1px solid #fecaca;
+      background: #fef2f2;
+      color: #dc2626;
+      border-radius: 14px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .info-box {
+      margin-top: 14px;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .toolbar, .form-card { padding: 18px; }
+    .section { margin-top: 24px; }
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .section-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .section-count { color: #64748b; font-size: 14px; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .person-card { padding: 18px; }
+    .person-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .person-name { margin: 0; font-size: 19px; }
+    .person-job { margin: 6px 0 0; color: #64748b; font-size: 14px; }
+    .badge {
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .badge-ready { background: #fef3c7; color: #b45309; }
+    .badge-sent { background: #d1fae5; color: #047857; }
+    .person-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      font-size: 14px;
+      margin-bottom: 14px;
+    }
+    .muted { color: #64748b; }
+    .sent-box {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 14px;
+      margin-top: 14px;
+      font-size: 14px;
+      line-height: 1.55;
+    }
+    .empty {
+      padding: 24px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 24px;
+      background: #fff;
+      color: #64748b;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+    }
+    .checkbox-row input { width: auto; }
+    .note {
+      margin-top: 14px;
+      border: 1px solid #fde68a;
+      background: #fffbeb;
+      color: #92400e;
+      border-radius: 16px;
+      padding: 14px;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    @media (max-width: 980px) {
+      .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      .grid-2, .cards, .person-meta { grid-template-columns: 1fr; }
+      .topbar-inner, .section-header { flex-direction: column; align-items: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loginScreen" class="login-wrap">
+    <div class="card login-card">
+      <div class="login-head">
+        <div class="lock-box">🔒</div>
+        <div>
+          <h1 class="login-title">Orenda Personel Sistemi</h1>
+          <p class="login-sub">Devam etmek için giriş yapın</p>
+        </div>
+      </div>
 
-  useEffect(() => {
-    localStorage.setItem("orenda_personnel", JSON.stringify(personnel));
-  }, [personnel]);
+      <div class="field">
+        <label for="username">Kullanıcı Adı</label>
+        <input id="username" type="text" placeholder="Kullanıcı adını gir" autocomplete="username" />
+      </div>
 
-  const filteredPersonnel = useMemo(() => {
-    const q = search.toLowerCase();
-    return personnel.filter(
-      (p) =>
-        p.adSoyad.toLowerCase().includes(q) ||
-        p.meslek.toLowerCase().includes(q) ||
-        (p.bolge || "").toLowerCase().includes(q)
-    );
-  }, [personnel, search]);
+      <div class="field">
+        <label for="password">Şifre</label>
+        <input id="password" type="password" placeholder="Şifreni gir" autocomplete="current-password" />
+      </div>
 
-  const iseGonderilenler = filteredPersonnel.filter((p) => p.iseGonderildi);
-  const anaListe = filteredPersonnel;
+      <div id="loginError" class="error hidden">Kullanıcı adı veya şifre hatalı.</div>
 
-  const addPersonnel = (newPerson) => {
-    setPersonnel((prev) => [
-      {
-        ...newPerson,
-        id: Date.now()
-      },
-      ...prev
-    ]);
-  };
+      <button id="loginBtn" class="btn btn-dark" style="width:100%;">Giriş Yap</button>
 
-  const sendToJob = (id) => {
-    setPersonnel((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              iseGonderildi: true,
-              durum: "İşe Gönderildi",
-              gonderimTarihi: new Date().toISOString().slice(0, 10)
-            }
-          : p
-      )
-    );
-  };
+      <div class="note">
+        Bu sürüm tek HTML dosyada stabil çalışsın diye hazırlandı. Ama gerçek güvenlik için backend şarttır. Bu hali kullanıcıyı ekranda tutar, sunucu güvenliği sağlamaz.
+      </div>
+    </div>
+  </div>
 
-  const logout = () => {
-    localStorage.removeItem("orenda_auth");
-    setIsLoggedIn(false);
-  };
+  <div id="appScreen" class="hidden">
+    <div class="topbar">
+      <div class="container topbar-inner">
+        <div>
+          <h1 class="title">Orenda Personel Takip</h1>
+          <p class="subtitle">Personel yönetim ve işe gönderim ekranı</p>
+        </div>
+        <button id="logoutBtn" class="btn btn-red">Çıkış Yap</button>
+      </div>
+    </div>
 
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
-  }
+    <div class="container page">
+      <div class="card form-card">
+        <h2 style="margin-top:0; margin-bottom:16px; font-size:22px;">Personel Ekle</h2>
 
-  return (
-    <div className="min-h-screen bg-slate-100">
-      <AppHeader onLogout={logout} />
-
-      <div className="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-        <PersonnelForm onAdd={addPersonnel} />
-
-        <div className="bg-white rounded-3xl shadow-lg border border-slate-200 p-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Personel ara..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border rounded-2xl"
-            />
+        <div class="grid-2">
+          <div class="field">
+            <label for="adSoyad">Ad Soyad</label>
+            <input id="adSoyad" type="text" placeholder="Ad Soyad" />
+          </div>
+          <div class="field">
+            <label for="meslek">Meslek</label>
+            <input id="meslek" type="text" placeholder="Meslek" />
+          </div>
+          <div class="field">
+            <label for="telefon">Telefon</label>
+            <input id="telefon" type="text" placeholder="Telefon" />
+          </div>
+          <div class="field">
+            <label for="bolge">Bölge</label>
+            <input id="bolge" type="text" placeholder="Bölge" />
           </div>
         </div>
 
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">Ana Liste</h2>
-            <span className="text-sm text-slate-500">Toplam: {anaListe.length}</span>
-          </div>
-          <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {anaListe.map((person) => (
-              <PersonnelCard key={person.id} person={person} onSendToJob={sendToJob} />
-            ))}
-          </div>
-        </section>
+        <label class="checkbox-row">
+          <input id="iseGonderildi" type="checkbox" />
+          Bu personel işe gönderildi
+        </label>
 
-        <section className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900">İşe Gönderilen Personeller</h2>
-            <span className="text-sm text-slate-500">Toplam: {iseGonderilenler.length}</span>
+        <div id="sentFields" class="grid-2 hidden">
+          <div class="field">
+            <label for="gonderimTarihi">Gönderim Tarihi</label>
+            <input id="gonderimTarihi" type="date" />
           </div>
-          <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-4">
-            {iseGonderilenler.length > 0 ? (
-              iseGonderilenler.map((person) => (
-                <PersonnelCard key={`sent-${person.id}`} person={person} onSendToJob={sendToJob} />
-              ))
-            ) : (
-              <div className="bg-white border border-dashed border-slate-300 rounded-3xl p-8 text-slate-500">
-                Henüz işe gönderilen personel yok.
-              </div>
-            )}
+          <div class="field">
+            <label for="kimlikFoto">Kimlik Fotoğrafı Linki</label>
+            <input id="kimlikFoto" type="text" placeholder="Kimlik fotoğraf linki" />
           </div>
-        </section>
+        </div>
+
+        <div class="field">
+          <label for="not">Not</label>
+          <textarea id="not" placeholder="Not"></textarea>
+        </div>
+
+        <button id="savePersonBtn" class="btn btn-dark">Kaydet</button>
+      </div>
+
+      <div class="section">
+        <div class="card toolbar">
+          <div class="field" style="margin-bottom:0;">
+            <label for="searchInput">Personel Ara</label>
+            <input id="searchInput" type="text" placeholder="Ad, meslek veya bölge ara..." />
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">Ana Liste</h2>
+          <div class="section-count">Toplam: <span id="mainCount">0</span></div>
+        </div>
+        <div id="mainList" class="cards"></div>
+      </div>
+
+      <div class="section">
+        <div class="section-header">
+          <h2 class="section-title">İşe Gönderilen Personeller</h2>
+          <div class="section-count">Toplam: <span id="sentCount">0</span></div>
+        </div>
+        <div id="sentList" class="cards"></div>
       </div>
     </div>
-  );
-}
+  </div>
+
+  <script>
+    (function () {
+      const AUTH_KEY = 'orenda_auth_ok_v2';
+      const PERSONNEL_KEY = 'orenda_personnel_data_v2';
+
+      const VALID_USERNAME = 'kudretliburak';
+      const VALID_PASSWORD = 'evetkudretliburak';
+
+      const defaultPersonnel = [
+        {
+          id: Date.now() + 1,
+          adSoyad: 'Ahmet Yılmaz',
+          meslek: 'Hasta Bakıcı',
+          telefon: '0555 123 45 67',
+          bolge: 'İstanbul',
+          iseGonderildi: false,
+          gonderimTarihi: '',
+          kimlikFoto: '',
+          not: ''
+        },
+        {
+          id: Date.now() + 2,
+          adSoyad: 'Meryem Kaya',
+          meslek: 'Çocuk Bakıcısı',
+          telefon: '0554 222 11 00',
+          bolge: 'Bursa',
+          iseGonderildi: true,
+          gonderimTarihi: '2026-03-18',
+          kimlikFoto: '',
+          not: 'Gece vardiyası için gönderildi'
+        }
+      ];
+
+      const loginScreen = document.getElementById('loginScreen');
+      const appScreen = document.getElementById('appScreen');
+      const loginError = document.getElementById('loginError');
+      const usernameInput = document.getElementById('username');
+      const passwordInput = document.getElementById('password');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const searchInput = document.getElementById('searchInput');
+      const mainList = document.getElementById('mainList');
+      const sentList = document.getElementById('sentList');
+      const mainCount = document.getElementById('mainCount');
+      const sentCount = document.getElementById('sentCount');
+      const iseGonderildiCheckbox = document.getElementById('iseGonderildi');
+      const sentFields = document.getElementById('sentFields');
+      const savePersonBtn = document.getElementById('savePersonBtn');
+
+      const adSoyadInput = document.getElementById('adSoyad');
+      const meslekInput = document.getElementById('meslek');
+      const telefonInput = document.getElementById('telefon');
+      const bolgeInput = document.getElementById('bolge');
+      const gonderimTarihiInput = document.getElementById('gonderimTarihi');
+      const kimlikFotoInput = document.getElementById('kimlikFoto');
+      const notInput = document.getElementById('not');
+
+      let personnel = loadPersonnel();
+
+      function loadPersonnel() {
+        try {
+          const saved = localStorage.getItem(PERSONNEL_KEY);
+          if (!saved) return defaultPersonnel;
+          const parsed = JSON.parse(saved);
+          return Array.isArray(parsed) ? parsed : defaultPersonnel;
+        } catch (e) {
+          return defaultPersonnel;
+        }
+      }
+
+      function savePersonnel() {
+        localStorage.setItem(PERSONNEL_KEY, JSON.stringify(personnel));
+      }
+
+      function escapeHtml(text) {
+        return String(text || '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#039;');
+      }
+
+      function formatLink(url) {
+        const safeUrl = String(url || '').trim();
+        if (!safeUrl) return 'Yok';
+        return '<a href="' + escapeHtml(safeUrl) + '" target="_blank" rel="noopener noreferrer">Görüntüle</a>';
+      }
+
+      function render() {
+        const q = searchInput.value.trim().toLowerCase();
+        const filtered = personnel.filter(function (p) {
+          return [p.adSoyad, p.meslek, p.bolge].join(' ').toLowerCase().includes(q);
+        });
+
+        const sentPeople = filtered.filter(function (p) { return p.iseGonderildi; });
+
+        mainCount.textContent = filtered.length;
+        sentCount.textContent = sentPeople.length;
+
+        mainList.innerHTML = filtered.length ? filtered.map(createCard).join('') : '<div class="empty">Kayıt bulunamadı.</div>';
+        sentList.innerHTML = sentPeople.length ? sentPeople.map(createCard).join('') : '<div class="empty">Henüz işe gönderilen personel yok.</div>';
+
+        bindSendButtons();
+      }
+
+      function createCard(person) {
+        return '' +
+          '<div class="card person-card">' +
+            '<div class="person-top">' +
+              '<div>' +
+                '<h3 class="person-name">' + escapeHtml(person.adSoyad) + '</h3>' +
+                '<p class="person-job">' + escapeHtml(person.meslek) + '</p>' +
+              '</div>' +
+              '<div class="badge ' + (person.iseGonderildi ? 'badge-sent' : 'badge-ready') + '">' + (person.iseGonderildi ? 'İşe Gönderildi' : 'Müsait') + '</div>' +
+            '</div>' +
+            '<div class="person-meta">' +
+              '<div><span class="muted">Telefon:</span> ' + escapeHtml(person.telefon) + '</div>' +
+              '<div><span class="muted">Bölge:</span> ' + escapeHtml(person.bolge || '-') + '</div>' +
+            '</div>' +
+            (person.iseGonderildi
+              ? '<div class="sent-box">' +
+                  '<div><span class="muted">Gönderim Tarihi:</span> ' + escapeHtml(person.gonderimTarihi || '-') + '</div>' +
+                  '<div style="margin-top:8px;"><span class="muted">Kimlik Fotoğrafı:</span> ' + formatLink(person.kimlikFoto) + '</div>' +
+                  '<div style="margin-top:8px;"><span class="muted">Not:</span> ' + escapeHtml(person.not || '-') + '</div>' +
+                '</div>'
+              : '<button class="btn btn-green send-job-btn" data-id="' + person.id + '">İşe Gönderildi Yap</button>') +
+          '</div>';
+      }
+
+      function bindSendButtons() {
+        document.querySelectorAll('.send-job-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            const id = Number(btn.getAttribute('data-id'));
+            personnel = personnel.map(function (p) {
+              if (p.id !== id) return p;
+              return {
+                ...p,
+                iseGonderildi: true,
+                gonderimTarihi: new Date().toISOString().slice(0, 10)
+              };
+            });
+            savePersonnel();
+            render();
+          });
+        });
+      }
+
+      function clearForm() {
+        adSoyadInput.value = '';
+        meslekInput.value = '';
+        telefonInput.value = '';
+        bolgeInput.value = '';
+        iseGonderildiCheckbox.checked = false;
+        gonderimTarihiInput.value = '';
+        kimlikFotoInput.value = '';
+        notInput.value = '';
+        sentFields.classList.add('hidden');
+      }
+
+      function savePerson() {
+        const newPerson = {
+          id: Date.now(),
+          adSoyad: adSoyadInput.value.trim(),
+          meslek: meslekInput.value.trim(),
+          telefon: telefonInput.value.trim(),
+          bolge: bolgeInput.value.trim(),
+          iseGonderildi: iseGonderildiCheckbox.checked,
+          gonderimTarihi: gonderimTarihiInput.value,
+          kimlikFoto: kimlikFotoInput.value.trim(),
+          not: notInput.value.trim()
+        };
+
+        if (!newPerson.adSoyad || !newPerson.meslek || !newPerson.telefon) {
+          alert('Ad Soyad, Meslek ve Telefon zorunlu.');
+          return;
+        }
+
+        if (newPerson.iseGonderildi && !newPerson.gonderimTarihi) {
+          newPerson.gonderimTarihi = new Date().toISOString().slice(0, 10);
+        }
+
+        personnel.unshift(newPerson);
+        savePersonnel();
+        clearForm();
+        render();
+      }
+
+      function doLogin() {
+        const username = usernameInput.value.trim();
+        const password = passwordInput.value;
+
+        if (username === VALID_USERNAME && password === VALID_PASSWORD) {
+          sessionStorage.setItem(AUTH_KEY, '1');
+          loginError.classList.add('hidden');
+          showApp();
+          return;
+        }
+
+        loginError.classList.remove('hidden');
+      }
+
+      function showApp() {
+        loginScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        render();
+      }
+
+      function showLogin() {
+        appScreen.classList.add('hidden');
+        loginScreen.classList.remove('hidden');
+      }
+
+      loginBtn.addEventListener('click', doLogin);
+      passwordInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') doLogin();
+      });
+      usernameInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') doLogin();
+      });
+
+      logoutBtn.addEventListener('click', function () {
+        sessionStorage.removeItem(AUTH_KEY);
+        showLogin();
+      });
+
+      iseGonderildiCheckbox.addEventListener('change', function () {
+        if (iseGonderildiCheckbox.checked) {
+          sentFields.classList.remove('hidden');
+        } else {
+          sentFields.classList.add('hidden');
+        }
+      });
+
+      savePersonBtn.addEventListener('click', savePerson);
+      searchInput.addEventListener('input', render);
+
+      if (sessionStorage.getItem(AUTH_KEY) === '1') {
+        showApp();
+      } else {
+        showLogin();
+      }
+    })();
+  </script>
+</body>
+</html>
