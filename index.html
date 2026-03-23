@@ -1,945 +1,165 @@
-<!DOCTYPE html>
-<html lang="tr">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Orenda Personel Paneli</title>
-    <style>
-      * { box-sizing: border-box; }
-      :root {
-        --bg: #081122;
-        --card: #0d1730;
-        --card-2: #101b36;
-        --border: rgba(255,255,255,0.08);
-        --text: #ffffff;
-        --muted: #94a3b8;
-        --primary: #22d3ee;
-        --danger: #ef4444;
-        --soft: #334155;
-        --success: #22c55e;
-      }
-
-      body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: var(--bg);
-        color: var(--text);
-      }
-
-      .hidden {
-        display: none !important;
-      }
-
-      .container {
-        max-width: 1340px;
-        margin: 0 auto;
-        padding: 24px;
-      }
-
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 22px;
-        flex-wrap: wrap;
-      }
-
-      .title h1 {
-        margin: 0 0 8px;
-        font-size: 34px;
-      }
-
-      .title p {
-        margin: 0;
-        color: var(--muted);
-      }
-
-      .actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-
-      .btn {
-        border: none;
-        border-radius: 12px;
-        padding: 12px 16px;
-        font-weight: 700;
-        cursor: pointer;
-      }
-
-      .btn-primary {
-        background: var(--primary);
-        color: #00131c;
-      }
-
-      .btn-secondary {
-        background: var(--card);
-        color: white;
-        border: 1px solid var(--border);
-      }
-
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
-        margin-bottom: 22px;
-      }
-
-      .stat-card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 18px;
-      }
-
-      .stat-card .label {
-        color: var(--muted);
-        font-size: 14px;
-      }
-
-      .stat-card .value {
-        font-size: 36px;
-        font-weight: 700;
-        margin-top: 10px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 360px 1fr;
-        gap: 20px;
-      }
-
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 20px;
-        padding: 18px;
-      }
-
-      h2, h3 {
-        margin-top: 0;
-      }
-
-      input, select, textarea {
-        width: 100%;
-        margin-bottom: 10px;
-        padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(255,255,255,0.1);
-        background: #07101f;
-        color: white;
-        outline: none;
-        font-size: 15px;
-      }
-
-      select option {
-        background: #0b1020;
-        color: #fff;
-      }
-
-      textarea {
-        min-height: 90px;
-        resize: vertical;
-      }
-
-      .helper {
-        color: var(--muted);
-        font-size: 13px;
-        margin-top: 2px;
-        margin-bottom: 12px;
-      }
-
-      .filters {
-        display: grid;
-        grid-template-columns: 1.3fr 0.9fr 0.9fr;
-        gap: 10px;
-        margin-bottom: 16px;
-      }
-
-      .person {
-        background: var(--card-2);
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        padding: 14px;
-        margin-bottom: 12px;
-      }
-
-      .person.blacklisted {
-        border-color: rgba(239,68,68,0.45);
-        box-shadow: inset 0 0 0 1px rgba(239,68,68,0.16);
-      }
-
-      .person.sent-person {
-        border-color: rgba(34,197,94,0.4);
-      }
-
-      .person-top {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        flex-wrap: wrap;
-      }
-
-      .person-name {
-        font-size: 19px;
-        font-weight: 700;
-      }
-
-      .badges {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-      }
-
-      .badge {
-        padding: 6px 10px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 700;
-      }
-
-      .badge-normal {
-        background: rgba(148,163,184,0.18);
-        color: #cbd5e1;
-      }
-
-      .badge-black {
-        background: rgba(239,68,68,0.18);
-        color: #fca5a5;
-      }
-
-      .badge-sent {
-        background: rgba(34,197,94,0.18);
-        color: #86efac;
-      }
-
-      .meta {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0,1fr));
-        gap: 8px;
-        margin-top: 12px;
-        color: #d6dfeb;
-        font-size: 14px;
-      }
-
-      .note {
-        margin-top: 12px;
-        padding: 12px;
-        border-radius: 12px;
-        background: rgba(255,255,255,0.03);
-        border: 1px solid var(--border);
-        color: #dbe3ee;
-        font-size: 14px;
-        line-height: 1.5;
-      }
-
-      .warning {
-        margin-top: 10px;
-        padding: 10px 12px;
-        border-radius: 12px;
-        background: rgba(239,68,68,0.12);
-        color: #fca5a5;
-        border: 1px solid rgba(239,68,68,0.25);
-        font-size: 13px;
-        font-weight: 700;
-      }
-
-      .sent-box {
-        margin-top: 12px;
-        padding: 12px;
-        border-radius: 12px;
-        background: rgba(34,197,94,0.08);
-        border: 1px solid rgba(34,197,94,0.18);
-      }
-
-      .sent-box h4 {
-        margin: 0 0 10px;
-        color: #86efac;
-      }
-
-      .sent-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0,1fr));
-        gap: 8px;
-        font-size: 14px;
-        color: #d7ffe1;
-      }
-
-      .id-photo {
-        margin-top: 12px;
-        max-width: 180px;
-        width: 100%;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-      }
-
-      .person-actions {
-        display: flex;
-        gap: 8px;
-        margin-top: 14px;
-        flex-wrap: wrap;
-      }
-
-      .small-btn {
-        border: none;
-        border-radius: 10px;
-        padding: 10px 12px;
-        cursor: pointer;
-        font-weight: 700;
-      }
-
-      .danger { background: var(--danger); color: white; }
-      .muted { background: var(--soft); color: white; }
-      .success { background: var(--success); color: white; }
-
-      .empty-state {
-        padding: 24px;
-        border-radius: 14px;
-        border: 1px dashed var(--border);
-        color: var(--muted);
-        text-align: center;
-      }
-
-      .section-gap {
-        margin-top: 22px;
-      }
-
-      .modal-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.55);
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 16px;
-        z-index: 50;
-      }
-
-      .modal {
-        width: 100%;
-        max-width: 560px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 18px;
-      }
-
-      .preview-image {
-        max-width: 140px;
-        border-radius: 12px;
-        border: 1px solid var(--border);
-        display: none;
-        margin: 8px 0 12px;
-      }
-
-      .login-screen {
-        min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-      }
-
-      .login-card {
-        width: 100%;
-        max-width: 460px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 22px;
-        padding: 24px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.35);
-      }
-
-      .login-title {
-        margin: 0 0 8px;
-        font-size: 30px;
-      }
-
-      .login-subtitle {
-        margin: 0 0 20px;
-        color: var(--muted);
-        font-size: 14px;
-      }
-
-      .login-error {
-        display: none;
-        margin-bottom: 12px;
-        padding: 12px;
-        border-radius: 12px;
-        background: rgba(239,68,68,0.12);
-        border: 1px solid rgba(239,68,68,0.25);
-        color: #fca5a5;
-        font-size: 14px;
-        font-weight: 700;
-      }
-
-      .logout-btn {
-        background: #172554;
-        color: #fff;
-        border: 1px solid rgba(255,255,255,0.08);
-      }
-
-      @media (max-width: 1100px) {
-        .stats { grid-template-columns: repeat(2, minmax(0,1fr)); }
-        .grid { grid-template-columns: 1fr; }
-      }
-
-      @media (max-width: 720px) {
-        .filters { grid-template-columns: 1fr; }
-        .meta, .sent-grid { grid-template-columns: 1fr; }
-        .stats { grid-template-columns: 1fr; }
-      }
-    </style>
-  </head>
-  <body>
-    <div id="loginScreen" class="login-screen">
-      <div class="login-card">
-        <h1 class="login-title">Orenda Personel Paneli</h1>
-        <p class="login-subtitle">Panele giriş yapmak için bilgileri gir kral.</p>
-
-        <div id="loginError" class="login-error">Kullanıcı adı veya şifre hatalı.</div>
-
-        <input id="loginUsername" type="text" placeholder="Kullanıcı adı" autocomplete="username" />
-        <input id="loginPassword" type="password" placeholder="Şifre" autocomplete="current-password" />
-        <button class="btn btn-primary" style="width:100%" onclick="login()">Giriş Yap</button>
-      </div>
-    </div>
-
-    <div id="mainApp" class="hidden">
-      <div class="container">
-        <div class="topbar">
-          <div class="title">
-            <h1>Orenda Personel Paneli</h1>
-            <p>Ekibe özel sade personel kayıt, bulma ve işe gönderim takibi</p>
-          </div>
-          <div class="actions">
-            <button class="btn btn-primary" onclick="scrollToForm()">Personel Ekle</button>
-            <button class="btn btn-secondary" onclick="scrollToList()">Personel Bul</button>
-            <button class="btn btn-secondary" onclick="scrollToSentList()">İşe Gönderilenler</button>
-            <button class="btn logout-btn" onclick="logout()">Çıkış Yap</button>
-          </div>
-        </div>
-
-        <div class="stats">
-          <div class="stat-card">
-            <div class="label">Toplam Personel</div>
-            <div class="value" id="statTotal">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Kara Listedekiler</div>
-            <div class="value" id="statBlack">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">İşe Gönderilenler</div>
-            <div class="value" id="statSent">0</div>
-          </div>
-          <div class="stat-card">
-            <div class="label">Bugün Eklenen</div>
-            <div class="value" id="statToday">0</div>
-          </div>
-        </div>
-
-        <div class="grid">
-          <div class="card" id="formSection">
-            <h2>Personel Ekle</h2>
-            <input id="name" placeholder="Ad soyad" />
-            <input id="phone" placeholder="Telefon" />
-            <input id="city" placeholder="Şehir" />
-            <input id="district" placeholder="İlçe" />
-            <input id="job" placeholder="Meslek / Pozisyon" />
-            <select id="workType">
-              <option value="">Çalışma tipi seç</option>
-              <option>Yatılı</option>
-              <option>Gündüzlü</option>
-              <option>Gece</option>
-              <option>Yatılı / Gündüzlü</option>
-            </select>
-            <input id="availability" placeholder="Uygunluk (ör: Hemen Başlar)" />
-            <textarea id="note" placeholder="Not"></textarea>
-            <div class="helper">Zorunlu alanlar: Ad soyad, telefon, şehir, meslek</div>
-            <button class="btn btn-primary" style="width:100%" onclick="addPerson()">Kaydet</button>
-          </div>
-
-          <div class="card" id="listSection">
-            <h2>Personel Bul</h2>
-
-            <div class="filters">
-              <input id="searchInput" placeholder="İsim, telefon, şehir, ilçe, meslek ara..." />
-              <select id="filterWorkType">
-                <option value="">Tüm Çalışma Tipleri</option>
-                <option>Yatılı</option>
-                <option>Gündüzlü</option>
-                <option>Gece</option>
-                <option>Yatılı / Gündüzlü</option>
-              </select>
-              <select id="filterStatus">
-                <option value="">Tüm Kayıtlar</option>
-                <option value="Normal">Normal</option>
-                <option value="Kara Liste">Kara Liste</option>
-                <option value="İşe Gönderildi">İşe Gönderildi</option>
-              </select>
-            </div>
-
-            <div id="personnelList"></div>
-
-            <div class="section-gap" id="sentSection">
-              <h2>İşe Gönderilenler</h2>
-              <div id="sentList"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-backdrop" id="sendModal">
-        <div class="modal">
-          <h3>Personeli İşe Gönder</h3>
-          <input id="sendPlace" placeholder="Gönderildiği yer / aile / iş bilgisi" />
-          <input id="sendDate" type="date" />
-          <textarea id="sendNote" placeholder="Ek not"></textarea>
-          <label style="display:block; margin:8px 0 6px; color:#cbd5e1;">Kimlik foto</label>
-          <input id="sendImage" type="file" accept="image/*" />
-          <img id="imagePreview" class="preview-image" alt="Önizleme" />
-
-          <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
-            <button class="btn btn-primary" onclick="confirmSend()">Kaydet</button>
-            <button class="btn btn-secondary" onclick="closeSendModal()">Vazgeç</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <script>
-      const STORAGE_KEY = "orenda_personnel_final_v1";
-      const AUTH_KEY = "orenda_login_ok_v1";
-      const LOGIN_USERNAME = "kudretliburak";
-      const LOGIN_PASSWORD = "evetkudretliburak";
-
-      const defaultPersonnel = [
-        {
-          id: 1001,
-          name: "Ayşe Demir",
-          phone: "0553 222 14 98",
-          city: "İstanbul",
-          district: "Esenyurt",
-          job: "Hasta Bakıcı",
-          workType: "Yatılı",
-          availability: "Hemen Başlar",
-          note: "Yaşlı bakım tecrübesi var. Referans mevcut.",
-          status: "Normal",
-          createdAt: new Date().toISOString(),
-          sentInfo: null
-        },
-        {
-          id: 1002,
-          name: "Fatma Nur",
-          phone: "0542 771 33 10",
-          city: "İstanbul",
-          district: "Bağcılar",
-          job: "Çocuk Bakıcısı",
-          workType: "Gündüzlü",
-          availability: "1 Hafta İçinde",
-          note: "Sigara kullanmıyor. Tam zamanlı iş arıyor.",
-          status: "Normal",
-          createdAt: new Date().toISOString(),
-          sentInfo: null
-        },
-        {
-          id: 1003,
-          name: "Sultan Yıldız",
-          phone: "0506 440 77 51",
-          city: "İstanbul",
-          district: "Pendik",
-          job: "Hasta Bakıcı",
-          workType: "Gece",
-          availability: "Hemen Başlar",
-          note: "Sorun yaşandı. Dikkatli olun.",
-          status: "Kara Liste",
-          createdAt: new Date().toISOString(),
-          sentInfo: null
-        }
-      ];
-
-      function showApp() {
-        document.getElementById("loginScreen").classList.add("hidden");
-        document.getElementById("mainApp").classList.remove("hidden");
-      }
-
-      function showLogin() {
-        document.getElementById("mainApp").classList.add("hidden");
-        document.getElementById("loginScreen").classList.remove("hidden");
-      }
-
-      function login() {
-        const username = document.getElementById("loginUsername").value.trim();
-        const password = document.getElementById("loginPassword").value;
-        const errorBox = document.getElementById("loginError");
-
-        if (username === LOGIN_USERNAME && password === LOGIN_PASSWORD) {
-          sessionStorage.setItem(AUTH_KEY, "ok");
-          errorBox.style.display = "none";
-          showApp();
-          renderAll();
-          return;
-        }
-
-        errorBox.style.display = "block";
-      }
-
-      function logout() {
-        sessionStorage.removeItem(AUTH_KEY);
-        showLogin();
-      }
-
-      function loadPersonnel() {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPersonnel));
-          return defaultPersonnel;
-        }
-        try {
-          const parsed = JSON.parse(raw);
-          return Array.isArray(parsed) ? parsed : defaultPersonnel;
-        } catch (e) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPersonnel));
-          return defaultPersonnel;
-        }
-      }
-
-      let personnel = loadPersonnel();
-      let selectedSendId = null;
-      let tempImageData = "";
-
-      function savePersonnel() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(personnel));
-      }
-
-      function escapeHtml(text) {
-        if (!text) return "";
-        return String(text)
-          .replaceAll("&", "&amp;")
-          .replaceAll("<", "&lt;")
-          .replaceAll(">", "&gt;")
-          .replaceAll('"', "&quot;")
-          .replaceAll("'", "&#039;");
-      }
-
-      function updateStats() {
-        const total = personnel.length;
-        const black = personnel.filter(p => p.status === "Kara Liste").length;
-        const sent = personnel.filter(p => p.sentInfo).length;
-        const today = personnel.filter(p => {
-          if (!p.createdAt) return false;
-          const d = new Date(p.createdAt);
-          const now = new Date();
-          return d.getDate() === now.getDate() &&
-                 d.getMonth() === now.getMonth() &&
-                 d.getFullYear() === now.getFullYear();
-        }).length;
-
-        document.getElementById("statTotal").textContent = total;
-        document.getElementById("statBlack").textContent = black;
-        document.getElementById("statSent").textContent = sent;
-        document.getElementById("statToday").textContent = today;
-      }
-
-      function addPerson() {
-        const name = document.getElementById("name").value.trim();
-        const phone = document.getElementById("phone").value.trim();
-        const city = document.getElementById("city").value.trim();
-        const district = document.getElementById("district").value.trim();
-        const job = document.getElementById("job").value.trim();
-        const workType = document.getElementById("workType").value.trim();
-        const availability = document.getElementById("availability").value.trim();
-        const note = document.getElementById("note").value.trim();
-
-        if (!name || !phone || !city || !job) {
-          alert("Ad soyad, telefon, şehir ve meslek alanlarını doldur kral.");
-          return;
-        }
-
-        const newPerson = {
-          id: Date.now(),
-          name,
-          phone,
-          city,
-          district,
-          job,
-          workType,
-          availability,
-          note,
-          status: "Normal",
-          createdAt: new Date().toISOString(),
-          sentInfo: null
-        };
-
-        personnel.unshift(newPerson);
-        savePersonnel();
-        clearForm();
-        renderAll();
-        scrollToList();
-      }
-
-      function clearForm() {
-        document.getElementById("name").value = "";
-        document.getElementById("phone").value = "";
-        document.getElementById("city").value = "";
-        document.getElementById("district").value = "";
-        document.getElementById("job").value = "";
-        document.getElementById("workType").value = "";
-        document.getElementById("availability").value = "";
-        document.getElementById("note").value = "";
-      }
-
-      function toggleBlacklist(id) {
-        personnel = personnel.map(p =>
-          p.id === id
-            ? { ...p, status: p.status === "Kara Liste" ? "Normal" : "Kara Liste" }
-            : p
-        );
-        savePersonnel();
-        renderAll();
-      }
-
-      function deletePerson(id) {
-        const ok = confirm("Bu personel kaydını silmek istediğine emin misin?");
-        if (!ok) return;
-        personnel = personnel.filter(p => p.id !== id);
-        savePersonnel();
-        renderAll();
-      }
-
-      function openSendModal(id) {
-        selectedSendId = id;
-        tempImageData = "";
-        document.getElementById("sendPlace").value = "";
-        document.getElementById("sendDate").value = new Date().toISOString().split("T")[0];
-        document.getElementById("sendNote").value = "";
-        const preview = document.getElementById("imagePreview");
-        preview.style.display = "none";
-        preview.src = "";
-        document.getElementById("sendImage").value = "";
-        document.getElementById("sendModal").style.display = "flex";
-      }
-
-      function closeSendModal() {
-        document.getElementById("sendModal").style.display = "none";
-        selectedSendId = null;
-        tempImageData = "";
-      }
-
-      document.addEventListener("change", function (e) {
-        if (e.target && e.target.id === "sendImage") {
-          const file = e.target.files[0];
-          if (!file) {
-            tempImageData = "";
-            return;
+<!-- SADECE SCRIPT KISMI DEĞİŞTİ, TAMAMI -->
+<script>
+  const STORAGE_KEY = "orenda_personnel_final_v1";
+  const AUTH_KEY = "orenda_login_ok_v1";
+  const LOGIN_USERNAME = "kudretliburak";
+  const LOGIN_PASSWORD = "evetkudretliburak";
+
+  function loadPersonnel() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    try {
+      return JSON.parse(raw);
+    } catch (e) {
+      return [];
+    }
+  }
+
+  let personnel = loadPersonnel();
+  let selectedSendId = null;
+  let tempImageData = "";
+
+  function savePersonnel() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(personnel));
+  }
+
+  function addPerson() {
+    const name = document.getElementById("name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const district = document.getElementById("district").value.trim();
+    const job = document.getElementById("job").value.trim();
+    const workType = document.getElementById("workType").value.trim();
+    const availability = document.getElementById("availability").value.trim();
+    const note = document.getElementById("note").value.trim();
+
+    if (!name || !phone || !city || !job) {
+      alert("Zorunlu alanları doldur.");
+      return;
+    }
+
+    const newPerson = {
+      id: Date.now(),
+      name,
+      phone,
+      city,
+      district,
+      job,
+      workType,
+      availability,
+      note,
+      status: "Normal",
+      createdAt: new Date().toISOString(),
+      sentInfo: null
+    };
+
+    personnel.unshift(newPerson);
+    savePersonnel();
+    renderAll();
+  }
+
+  function toggleBlacklist(id) {
+    personnel = personnel.map(p =>
+      p.id === id
+        ? { ...p, status: p.status === "Kara Liste" ? "Normal" : "Kara Liste" }
+        : p
+    );
+    savePersonnel();
+    renderAll();
+  }
+
+  function openSendModal(id) {
+    selectedSendId = id;
+    document.getElementById("sendModal").style.display = "flex";
+  }
+
+  function closeSendModal() {
+    document.getElementById("sendModal").style.display = "none";
+    selectedSendId = null;
+  }
+
+  function confirmSend() {
+    const place = document.getElementById("sendPlace").value.trim();
+    const date = document.getElementById("sendDate").value;
+    const note = document.getElementById("sendNote").value.trim();
+
+    if (!selectedSendId) return;
+    if (!place || !date) {
+      alert("Yer ve tarih zorunlu.");
+      return;
+    }
+
+    personnel = personnel.map(p =>
+      p.id === selectedSendId
+        ? {
+            ...p,
+            status: "İşe Gönderildi",
+            sentInfo: { place, date, note }
           }
+        : p
+    );
 
-          const reader = new FileReader();
-          reader.onload = function(evt) {
-            tempImageData = evt.target.result;
-            const preview = document.getElementById("imagePreview");
-            preview.src = tempImageData;
-            preview.style.display = "block";
-          };
-          reader.readAsDataURL(file);
-        }
-      });
+    savePersonnel();
+    closeSendModal();
+    renderAll();
+  }
 
-      function confirmSend() {
-        const place = document.getElementById("sendPlace").value.trim();
-        const date = document.getElementById("sendDate").value;
-        const note = document.getElementById("sendNote").value.trim();
+  function renderPersonnelList() {
+    const listEl = document.getElementById("personnelList");
+    const search = document.getElementById("searchInput").value.toLowerCase();
+    const workType = document.getElementById("filterWorkType").value;
+    const status = document.getElementById("filterStatus").value;
 
-        if (!selectedSendId) return;
-        if (!place || !date) {
-          alert("Gönderildiği yer ve tarih zorunlu kral.");
-          return;
-        }
+    const filtered = personnel.filter(p => {
+      const text = (
+        p.name + p.phone + p.city + p.district + p.job + p.note
+      ).toLowerCase();
 
-        personnel = personnel.map(p =>
-          p.id === selectedSendId
-            ? {
-                ...p,
-                sentInfo: {
-                  place,
-                  date,
-                  note,
-                  image: tempImageData || (p.sentInfo?.image || "")
-                }
-              }
-            : p
-        );
+      const searchMatch = !search || text.includes(search);
+      const workMatch = !workType || p.workType === workType;
+      const statusMatch = !status || p.status === status;
 
-        savePersonnel();
-        closeSendModal();
-        renderAll();
-      }
+      return searchMatch && workMatch && statusMatch;
+    });
 
-      function renderPersonnelList() {
-        const listEl = document.getElementById("personnelList");
-        const search = document.getElementById("searchInput").value.trim().toLowerCase();
-        const workType = document.getElementById("filterWorkType").value;
-        const status = document.getElementById("filterStatus").value;
+    if (!filtered.length) {
+      listEl.innerHTML = "Kayıt yok.";
+      return;
+    }
 
-        const filtered = personnel.filter(p => {
-          const haystack = [
-            p.name,
-            p.phone,
-            p.city,
-            p.district,
-            p.job,
-            p.workType,
-            p.availability,
-            p.note
-          ].join(" ").toLowerCase();
+    listEl.innerHTML = filtered.map(p => `
+      <div class="person">
+        <b>${p.name}</b> - ${p.job} - ${p.phone}
+        <br>Durum: ${p.status}
+        <br>
+        <button onclick="openSendModal(${p.id})">İşe Gönder</button>
+        <button onclick="toggleBlacklist(${p.id})">Kara Liste</button>
+      </div>
+    `).join("");
+  }
 
-          const searchMatch = !search || haystack.includes(search);
-          const workMatch = !workType || p.workType === workType;
-          const statusMatch =
-            !status ||
-            (status === "İşe Gönderildi" ? !!p.sentInfo : p.status === status);
+  function renderSentList() {
+    const sentListEl = document.getElementById("sentList");
+    const sentPeople = personnel.filter(p => p.status === "İşe Gönderildi");
 
-          return searchMatch && workMatch && statusMatch;
-        });
+    if (!sentPeople.length) {
+      sentListEl.innerHTML = "Henüz gönderilen yok.";
+      return;
+    }
 
-        if (!filtered.length) {
-          listEl.innerHTML = `<div class="empty-state">Aramana uygun personel bulunamadı.</div>`;
-          return;
-        }
+    sentListEl.innerHTML = sentPeople.map(p => `
+      <div class="person">
+        <b>${p.name}</b>
+        <br>Yer: ${p.sentInfo?.place || "-"}
+        <br>Tarih: ${p.sentInfo?.date || "-"}
+      </div>
+    `).join("");
+  }
 
-        listEl.innerHTML = filtered.map(p => {
-          const isBlack = p.status === "Kara Liste";
-          const isSent = !!p.sentInfo;
+  function renderAll() {
+    renderPersonnelList();
+    renderSentList();
+  }
 
-          return `
-            <div class="person ${isBlack ? "blacklisted" : ""} ${isSent ? "sent-person" : ""}">
-              <div class="person-top">
-                <div class="person-name">${escapeHtml(p.name)}</div>
-                <div class="badges">
-                  <span class="badge ${isBlack ? "badge-black" : "badge-normal"}">
-                    ${isBlack ? "Kara Liste" : "Normal"}
-                  </span>
-                  ${isSent ? `<span class="badge badge-sent">İşe Gönderildi</span>` : ``}
-                </div>
-              </div>
-
-              <div class="meta">
-                <div><strong>Meslek:</strong> ${escapeHtml(p.job || "-")}</div>
-                <div><strong>Telefon:</strong> ${escapeHtml(p.phone || "-")}</div>
-                <div><strong>Şehir:</strong> ${escapeHtml(p.city || "-")}</div>
-                <div><strong>İlçe:</strong> ${escapeHtml(p.district || "-")}</div>
-                <div><strong>Çalışma:</strong> ${escapeHtml(p.workType || "-")}</div>
-                <div><strong>Uygunluk:</strong> ${escapeHtml(p.availability || "-")}</div>
-              </div>
-
-              ${p.note ? `<div class="note">${escapeHtml(p.note)}</div>` : ``}
-
-              ${isBlack ? `<div class="warning">Bu kayıt kara listededir. İş verilmeden önce kontrol edin.</div>` : ``}
-
-              ${isSent ? `
-                <div class="sent-box">
-                  <h4>İşe Gönderim Bilgisi</h4>
-                  <div class="sent-grid">
-                    <div><strong>Yer:</strong> ${escapeHtml(p.sentInfo.place || "-")}</div>
-                    <div><strong>Tarih:</strong> ${escapeHtml(p.sentInfo.date || "-")}</div>
-                  </div>
-                  ${p.sentInfo.note ? `<div class="note" style="margin-top:10px;">${escapeHtml(p.sentInfo.note)}</div>` : ``}
-                  ${p.sentInfo.image ? `<img class="id-photo" src="${p.sentInfo.image}" alt="Kimlik Foto">` : ``}
-                </div>
-              ` : ``}
-
-              <div class="person-actions">
-                <button class="small-btn success" onclick="openSendModal(${p.id})">
-                  ${isSent ? "Gönderim Bilgisini Güncelle" : "İşe Gönder"}
-                </button>
-                <button class="small-btn ${isBlack ? "muted" : "danger"}" onclick="toggleBlacklist(${p.id})">
-                  ${isBlack ? "Listeden Çıkar" : "Kara Listeye Al"}
-                </button>
-                <button class="small-btn muted" onclick="deletePerson(${p.id})">Sil</button>
-              </div>
-            </div>
-          `;
-        }).join("");
-      }
-
-      function renderSentList() {
-        const sentListEl = document.getElementById("sentList");
-        const sentPeople = personnel.filter(p => p.sentInfo);
-
-        if (!sentPeople.length) {
-          sentListEl.innerHTML = `<div class="empty-state">Henüz işe gönderilmiş personel yok.</div>`;
-          return;
-        }
-
-        sentListEl.innerHTML = sentPeople.map(p => `
-          <div class="person sent-person">
-            <div class="person-top">
-              <div class="person-name">${escapeHtml(p.name)}</div>
-              <div class="badges">
-                <span class="badge badge-sent">İşe Gönderildi</span>
-              </div>
-            </div>
-
-            <div class="meta">
-              <div><strong>Telefon:</strong> ${escapeHtml(p.phone || "-")}</div>
-              <div><strong>Meslek:</strong> ${escapeHtml(p.job || "-")}</div>
-              <div><strong>Şehir:</strong> ${escapeHtml(p.city || "-")}</div>
-              <div><strong>İlçe:</strong> ${escapeHtml(p.district || "-")}</div>
-            </div>
-
-            <div class="sent-box">
-              <h4>Gönderim Bilgisi</h4>
-              <div class="sent-grid">
-                <div><strong>Yer:</strong> ${escapeHtml(p.sentInfo.place || "-")}</div>
-                <div><strong>Tarih:</strong> ${escapeHtml(p.sentInfo.date || "-")}</div>
-              </div>
-              ${p.sentInfo.note ? `<div class="note" style="margin-top:10px;">${escapeHtml(p.sentInfo.note)}</div>` : ``}
-              ${p.sentInfo.image ? `<img class="id-photo" src="${p.sentInfo.image}" alt="Kimlik Foto">` : ``}
-            </div>
-          </div>
-        `).join("");
-      }
-
-      function renderAll() {
-        updateStats();
-        renderPersonnelList();
-        renderSentList();
-      }
-
-      function scrollToForm() {
-        document.getElementById("formSection").scrollIntoView({ behavior: "smooth" });
-      }
-
-      function scrollToList() {
-        document.getElementById("listSection").scrollIntoView({ behavior: "smooth" });
-      }
-
-      function scrollToSentList() {
-        document.getElementById("sentSection").scrollIntoView({ behavior: "smooth" });
-      }
-
-      document.getElementById("searchInput").addEventListener("input", renderAll);
-      document.getElementById("filterWorkType").addEventListener("change", renderAll);
-      document.getElementById("filterStatus").addEventListener("change", renderAll);
-
-      document.getElementById("loginUsername").addEventListener("keydown", function(e) {
-        if (e.key === "Enter") login();
-      });
-
-      document.getElementById("loginPassword").addEventListener("keydown", function(e) {
-        if (e.key === "Enter") login();
-      });
-
-      if (sessionStorage.getItem(AUTH_KEY) === "ok") {
-        showApp();
-        renderAll();
-      } else {
-        showLogin();
-      }
-    </script>
-  </body>
-</html>
+  renderAll();
+</script>
